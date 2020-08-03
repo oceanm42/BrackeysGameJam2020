@@ -9,7 +9,8 @@ public class Player : MonoBehaviour
     private string previousHit;
     private Animator animator;
     private GameManager gameManager;
-
+    private AudioManager audioManager;
+    private CameraShake cameraShake;
 
     [Header("Speed Settings")]
     [SerializeField]
@@ -28,12 +29,25 @@ public class Player : MonoBehaviour
     private float boxHeight;
     [SerializeField]
     private GameObject explosionEffect;
+    [SerializeField]
+    private GameObject ffExplosion;
+    [SerializeField]
+    private GameObject rwExplosion;
+
+    private AudioSource theme;
+    private AudioSource direction;
+    private AudioSource hit;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         gameManager = FindObjectOfType<GameManager>();
+        cameraShake = FindObjectOfType<CameraShake>();
+        audioManager = FindObjectOfType<AudioManager>();
+        theme = audioManager.FindSource("Theme");
+        direction = audioManager.FindSource("Direction");
+        hit = audioManager.FindSource("Hit");
 
         horzSpeed = fastFowardSpeed;
     }
@@ -78,6 +92,7 @@ public class Player : MonoBehaviour
     private void HitObstacle()
     {
         gameManager.EndGame(false);
+        hit.Play();
         Instantiate(explosionEffect, transform.position, Quaternion.identity);
         Destroy(gameObject);
     }
@@ -89,12 +104,16 @@ public class Player : MonoBehaviour
         {
             rewindSpeed = IncreaseSpeed(rewindSpeed, speedScaler);
             fastFowardSpeed = IncreaseSpeed(fastFowardSpeed, speedScaler);
+            vertSpeed = IncreaseSpeed(vertSpeed, speedScaler);
 
             if (rewind == true)
             {
                 horzSpeed = rewindSpeed;
                 previousHit = type;
                 animator.Play("Player_RW");
+                Instantiate(rwExplosion, transform.position, Quaternion.identity);
+                theme.pitch = -audioManager.themePitch;
+                direction.Play();
                 gameManager.particles.textureSheetAnimation.SetSprite(0, gameManager.rw);
                 gameManager.ChangeCameraColor();
             }
@@ -103,11 +122,15 @@ public class Player : MonoBehaviour
                 horzSpeed = fastFowardSpeed;
                 previousHit = type;
                 animator.Play("Player_FF");
+                Instantiate(ffExplosion, transform.position, Quaternion.identity);
+                theme.pitch = audioManager.themePitch;
+                direction.Play();
                 gameManager.particles.textureSheetAnimation.SetSprite(0, gameManager.ff);
                 gameManager.ChangeCameraColor();
             }
             gameManager.fasterAnimator.SetTrigger("Faster");
             StartCoroutine(gameManager.WriteText(.01f, "FASTER", gameManager.fasterText));
+            StartCoroutine(cameraShake.Shake(.15f, .4f));
         }
     }
     

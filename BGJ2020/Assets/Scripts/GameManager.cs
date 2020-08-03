@@ -8,10 +8,14 @@ using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
+    [HideInInspector]
     public bool gameHasEnded;
+
     public Animator fasterAnimator;
     private bool playerWon;
     private Rigidbody2D playerRb;
+    private AudioManager audioManager;
+    private CameraShake cameraShake;
 
     [Header("End Game Messages")]
     [SerializeField]
@@ -43,9 +47,12 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        audioManager = FindObjectOfType<AudioManager>();
         playerWon = false;
         playerRb = GameObject.Find("Player").GetComponent<Rigidbody2D>();
-        currentTime = maxTime;
+        cameraShake = FindObjectOfType<CameraShake>();
+        //currentTime = maxTime;
+        currentTime = 0f;
         timeLeftSlider.maxValue = maxTime;
     }
 
@@ -60,11 +67,14 @@ public class GameManager : MonoBehaviour
                 playerRb.velocity = Vector2.zero;
                 StartCoroutine(WriteText(.1f, victoryMessages[Random.Range(0, victoryMessages.Length)], endGameText));
                 StartCoroutine(WriteText(.05f, "PRESS 'ENTER' TO CONTINUE", instructionText));
+                audioManager.FindSource("Theme").pitch = audioManager.themePitch;
             }
             else
             {
                 StartCoroutine(WriteText(.1f, lossMessages[Random.Range(0, lossMessages.Length)], endGameText));
                 StartCoroutine(WriteText(.05f, "PRESS 'ENTER' TO RESTART", instructionText));
+                audioManager.FindSource("Theme").pitch = audioManager.themePitch;
+                StartCoroutine(cameraShake.Shake(.15f, .4f));
             }
         }
     }
@@ -73,20 +83,21 @@ public class GameManager : MonoBehaviour
     {
         if (gameHasEnded == false)
         {
-            currentTime -= 1 * Time.deltaTime;
+            //currentTime -= 1 * Time.deltaTime;
+            currentTime += 1 * Time.deltaTime;
             timeLeftSlider.value = currentTime;
-            if (currentTime <= 0)
+            if (/*currentTime <= 0*/ currentTime >= maxTime)
             {
                 EndGame(true);
             }
         }
         else
         {
-            if (Input.GetKeyDown(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Return) && PauseMenu.GameIsPaused == false)
             {
                 if (playerWon == true)
                 {
-                    Debug.Log("Loading next scene");
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
                 }
                 else
                 {
