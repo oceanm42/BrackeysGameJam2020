@@ -462,8 +462,8 @@ MonoBehaviour:
   rewindSpeed: -10
   fastFowardSpeed: 10
   speedScaler: 0.1
-  boxWidth: 2
-  boxHeight: 0.63
+  boxWidth: 1.8
+  boxHeight: 0.5
   explosionEffect: {fileID: 987425037862506340, guid: ddf9e776c0a803a4a9a7f91962f87723,
     type: 3}
   ffExplosion: {fileID: 5939226396524976069, guid: 287408f66c4b0bb46a273e9fe224ab2c,
